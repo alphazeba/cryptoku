@@ -1,6 +1,6 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.puzzle;
 
-import static com.arnhom.cryptoku.Operations.Operation.none;
+import static com.arnhom.cryptoku.puzzle.Operations.Operation.none;
 
 /**
  * Created by arnHom on 17/07/28.
@@ -29,12 +29,12 @@ public class Operations {
     public void setup(int difficulty){
         switch(difficulty){
             case 0:
-                this.operation = randomOperation(3);
+                this.operation = randomOperation(1);
                 this.operand = randomInt(10);
                 break;
 
             case 1:
-                this.operation = randomOperation(5);
+                this.operation = randomOperation(3);
                 this.operand = randomInt(10);
                 break;
             case 2:

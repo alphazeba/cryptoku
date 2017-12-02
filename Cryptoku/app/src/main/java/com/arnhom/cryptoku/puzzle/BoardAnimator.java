@@ -1,4 +1,4 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.puzzle;
 
 import android.util.Log;
 import android.util.MalformedJsonException;

@@ -1,4 +1,4 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.input;
 
 import android.view.MotionEvent;
 

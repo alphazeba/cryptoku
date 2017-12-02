@@ -1,4 +1,4 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.output;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -6,7 +6,10 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 
 /**
- * Created by arnHom on 17/08/01.
+ * the exciteinformer interestingly displays short shoutouts and information to the user.
+ * a text box expands onto the screen from the right,
+ * the screen flows across the screen from the right,
+ * then the text box follows the text off the screen.
  */
 
 public class ExciteInformer {
@@ -18,7 +21,7 @@ public class ExciteInformer {
     1  =  text flying accross
     2  =  box following the text.
     3  =  nothing.
-     */
+    */
 
     float timer;
     int state;
@@ -41,7 +44,7 @@ public class ExciteInformer {
 
     int width, height;
 
-    ExciteInformer(int w, int h){
+    public ExciteInformer(int w, int h){
         width = w;
         height = h;
         text = "";

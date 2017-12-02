@@ -1,10 +1,12 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.puzzle;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.Log;
+
+import com.arnhom.cryptoku.input.TouchAction;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -19,10 +21,6 @@ import java.util.ListIterator;
 public class Puzzle {
 
     /*
-    TODO
-    so what i was planning to do is to figure out how to properly instantiate the operations in the array.
-    also I would have to make movement filtering in order to prevent illegal moves.
-
     the goal is that nothing in the puzzle class loops.
     additionally, the update would return a boolean true or false to determine whether or not a redraw is required.
 
@@ -40,7 +38,7 @@ public class Puzzle {
 
     LinkedList<Integer> solution;
 
-    Operations []rowOperations;
+    Operations[]rowOperations;
     Operations []colOperations;
 
     float width,height;
@@ -56,7 +54,7 @@ public class Puzzle {
     TouchAction storedInput;
     BoardAnimator boardAnimator;
 
-    public Puzzle(int difficulty){
+    public Puzzle(int scrambleDepth, int operationComplexity){
         this.x = 0;
         this.y = 0;
 
@@ -72,8 +70,8 @@ public class Puzzle {
         colOperations = new Operations[3];
         //setup row and col operations
         for(int i =0 ; i < 3 ; ++i){
-            rowOperations[i] = new Operations(difficulty);
-            colOperations[i] = new Operations(difficulty);
+            rowOperations[i] = new Operations(operationComplexity);
+            colOperations[i] = new Operations(operationComplexity);
         }
 
         //prep board.
@@ -84,25 +82,16 @@ public class Puzzle {
             }
         }
 
-        switch(difficulty){
-            case 0:
-                scramble(6);
-                break;
-            case 1:
-                scramble(12);
-                break;
-            case 2:
-                scramble(24);
-                break;
-            default:
-                scramble(0);
-                break;
-        }
+        scramble(scrambleDepth);
 
         tweenRedraw = true;
         //will always need to redraw on the first frame.
 
         Log.i("puzzle","done building puzzle :)");
+    }
+
+    public Puzzle(int difficulty){
+        this(6*(int)Math.pow(2,difficulty),difficulty);
     }
 
     //returns how deep the puzzle actually is.
@@ -412,13 +401,13 @@ public class Puzzle {
                 text = "x " + op.operand;
                 break;
             case divide:
-                text = "/ " + op.operand;
+                text = "÷ " + op.operand;
                 break;
             case square:
-                text = "^ 2";
+                text = "x²";
                 break;
             case root:
-                text = "^1/2";
+                text = "√x";
                 break;
             default:
                 text = "uh oh";
@@ -426,7 +415,7 @@ public class Puzzle {
         }
 
         //draw the text
-        canvas.drawText(text,x+radius/4,y+radius,txtColor);
+        canvas.drawText(text,x+radius/2,y+radius,txtColor);
     }
 
     private void drawNumber(float x, float y, int num, Canvas canvas){
@@ -437,18 +426,22 @@ public class Puzzle {
         Paint bgColor = new Paint();
 
         int color = Color.WHITE;
-        if(num > 1){
-            int dif = num -1;
-            float wRatio = (1000-dif)/1000.f;
-            float pRatio = (dif)/1000.f;
-            color = Color.rgb((int)(255*wRatio + 131*pRatio),(int)(255*wRatio + 73*pRatio),255);
+        int curviness = 30;//the higher this number, the more linear the function. the lower the number, the more drastic the curve is.
+        int functionScaler = (10000+curviness)/10;
+        float colorScale =(float)((num-1)/(curviness+Math.sqrt((1+(num-1)*(num-1))))*functionScaler);
+        //Log.i("colorscale",Float.toString(colorScale));
+        if(colorScale > 0){
+            float wRatio = (1000-colorScale)/1200.f;
+            float pRatio = (colorScale)/1000.f;
+            //color = Color.rgb((int)(255*wRatio + 131*pRatio),(int)(255*wRatio + 73*pRatio),255);
+            color = Color.rgb((int)(255*wRatio),(int)(255*wRatio),255);
         }
-
-        if(num < 1){
-            int dif = 1-num;
-            float wRatio = (1001-dif)/1001.f;
-            float pRatio = (dif)/1001.f;
-            color = Color.rgb(255,(int)(255*wRatio + 73*pRatio),(int)(255*wRatio + 218*pRatio));
+        else if(colorScale < 0){
+            colorScale *= -1;
+            float wRatio = (1000-colorScale)/1100.f;
+            float pRatio = (colorScale)/1100.f;
+            //color = Color.rgb(255,(int)(255*wRatio + 73*pRatio),(int)(255*wRatio + 218*pRatio));
+            color = Color.rgb(255,(int)(255*wRatio),(int)(255*wRatio));
         }
 
         bgColor.setColor(color);

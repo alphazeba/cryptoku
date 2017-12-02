@@ -1,5 +1,6 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.activities;
 
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,12 +15,14 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 
+import com.arnhom.cryptoku.output.ExciteInformer;
+import com.arnhom.cryptoku.puzzle.Puzzle;
 import com.arnhom.cryptoku.R;
+import com.arnhom.cryptoku.output.ResponseRandomizer;
+import com.arnhom.cryptoku.input.TouchAction;
+import com.arnhom.cryptoku.input.TouchInput;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
+
 public class cryptokuMain extends AppCompatActivity{
 //TODO this program is horribly organized.
 
@@ -31,10 +34,13 @@ public class cryptokuMain extends AppCompatActivity{
     TouchInput input;
     Puzzle puzzle;
     ExciteInformer exciteInformer;
+    ResponseRandomizer responseRandomizer;
 
     TextView solutionText;
 
-    int x;
+    Intent intent;
+
+    //int x;//TODO what is this?
 
     //drawing thread items.
     Thread thread;
@@ -58,7 +64,7 @@ public class cryptokuMain extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //TODO remove this x variables
-        x = 0;
+        //x = 0;
 
         setContentView(R.layout.activity_cryptuko_main);
 
@@ -79,9 +85,16 @@ public class cryptokuMain extends AppCompatActivity{
         //The drawing thread is started later in onResume.
 
         input = new TouchInput(720,1280);
-        puzzle = new Puzzle(0);//right now just builds a level 0 puzzle;
-        exciteInformer = new ExciteInformer(720,1280);
 
+        exciteInformer = new ExciteInformer(720,1280);
+        responseRandomizer = new ResponseRandomizer();
+
+
+        //setup the puzzle.
+        //this requires fetching the intent from the activity that started this activity
+        intent = getIntent();
+
+        setupPuzzle();
 
         //surfaceView.getHolder().addCallback(this);
         surfaceView.setOnTouchListener(new View.OnTouchListener(){
@@ -208,7 +221,7 @@ public class cryptokuMain extends AppCompatActivity{
         }
 
         if(puzzle.getSuccess() && !hasSucceeded){
-            exciteInformer.inform("SUCCESS!!   SUCCESS!!  SUCCESS!!");
+            exciteInformer.inform(responseRandomizer.getSuccessResponse());
         }
         hasSucceeded = puzzle.getSuccess();
 
@@ -240,6 +253,7 @@ public class cryptokuMain extends AppCompatActivity{
         while(threadRunning){
 
             //clock stuff.
+            //if the frame went by too quickly (likely) the side thread will sleep to maintain a lower maximum fps.
             long time = System.currentTimeMillis() - thisFrameStartTime;
             if(time < minimumFrameLength){
                 SystemClock.sleep(minimumFrameLength - time);
@@ -282,23 +296,32 @@ public class cryptokuMain extends AppCompatActivity{
         solutionText.setText("");
         puzzle.reset();
         puzzle.shake();
-        exciteInformer.inform("AGAIN!");
+        exciteInformer.inform(responseRandomizer.getResetResponse());
         flagForRedraw();
     }
 
     public void onNewPuzzle(View view){
         solutionText.setText("");
         killThread();
-        puzzle = new Puzzle(0);
+        setupPuzzle();
         puzzle.onResize(oldWidth,oldHeight);
         puzzle.shake();
-        exciteInformer.inform("A NEW CHALLENGE!");
+        exciteInformer.inform(responseRandomizer.getNewPuzzleResponse());
         startThread();
     }
 
     public void onGetSolution(View view){
         solutionText.setText(puzzle.solutionToString());
         puzzle.shake();
-        exciteInformer.inform("TOO HARD?");
+        exciteInformer.inform(responseRandomizer.getGetSolutionResponse());
+    }
+
+    //builds a new puzzle and places it in the puzzle variable.
+    private void setupPuzzle(){
+        if(intent.getIntExtra("difficulty",-1) == -1){ //if this is a custom game.
+            puzzle = new Puzzle(intent.getIntExtra("depth",0),intent.getIntExtra("operators",0));
+        } else {
+            puzzle = new Puzzle(intent.getIntExtra("difficulty",-1));//right now just builds a level 0 puzzle;
+        }
     }
 }

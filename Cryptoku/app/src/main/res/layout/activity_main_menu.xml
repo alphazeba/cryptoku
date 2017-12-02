@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1"
+    android:orientation="vertical"
+    tools:context="com.arnhom.cryptoku.activities.MainMenu">
+
+    <TextView
+        android:text="@string/app_name"
+        android:layout_width="match_parent"
+        android:id="@+id/titleText"
+        android:layout_weight="1"
+        android:textSize="80sp"
+        android:textStyle="normal|italic"
+        android:textAlignment="center"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/background_light" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="70sp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="@string/play_button_text"
+                android:layout_width="match_parent"
+                android:id="@+id/playText"
+                android:textSize="40sp"
+                android:gravity="top"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="28dp"
+                android:textColor="@android:color/background_light" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="bottom"
+                android:layout_alignParentBottom="true"
+                style="?android:buttonBarStyle">
+
+                <Button
+                    style="?android:buttonBarButtonStyle"
+                    android:text="@string/easy_button_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:id="@+id/easyButton"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:gravity="bottom|center_horizontal"
+                    android:textColor="@android:color/darker_gray"
+                    android:textAllCaps="true"
+                    android:onClick="onPlayEasy"/>
+
+                <Button
+                    style="?android:buttonBarButtonStyle"
+                    android:text="@string/medium_button_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:id="@+id/mediumButton"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:gravity="bottom|center_horizontal"
+                    android:textColor="@android:color/darker_gray"
+                    android:textAllCaps="true"
+                    android:onClick="onPlayMedium"/>
+
+                <Button
+                    style="?android:buttonBarButtonStyle"
+                    android:text="@string/hard_button_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:id="@+id/hardButton"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:gravity="bottom|center_horizontal"
+                    android:textColor="@android:color/darker_gray"
+                    android:textAllCaps="true"
+                    android:onClick="onPlayHard"/>
+            </LinearLayout>
+
+        </RelativeLayout>
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="50sp" />
+
+    <Button
+        android:text="@string/play_custom_puzzle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/customButton"
+        android:layout_weight="1"
+        tools:background="@android:color/transparent"
+        android:textSize="40sp"
+        android:textAllCaps="true"
+        android:onClick="onPlayCustom"
+        android:background="@android:color/transparent" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="200sp" />
+
+
+</LinearLayout>

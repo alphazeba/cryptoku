@@ -1,6 +1,8 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.input;
 
 import android.view.MotionEvent;
+
+import com.arnhom.cryptoku.input.TouchAction;
 
 /**
  * Created by arnHom on 17/07/27.

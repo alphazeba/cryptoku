@@ -2,10 +2,17 @@
     <string name="app_name">Cryptoku</string>
 
     <string name="play_button_text">Play</string>
+    <string name="play_custom_puzzle">Custom Puzzle</string>
     <string name="easy_button_text">Easy</string>
     <string name="medium_button_text">Medium</string>
     <string name="hard_button_text">Hard</string>
     <string name="button_newpuzzle">New Puzzle</string>
     <string name="button_reset">Reset Puzzle</string>
     <string name="button_getsolution">Get Solution</string>
+    <string name="depth">Depth</string>
+    <string name="operators">Operators</string>
+    <string name="leftSymbol"><![CDATA[<<]]></string>
+    <string name="subtract">-</string>
+    <string name="add">+</string>
+    <string name="rightSymbol"><![CDATA[>>]]></string>
 </resources>

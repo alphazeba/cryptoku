@@ -1,4 +1,4 @@
-package com.arnhom.cryptoku;
+package com.arnhom.cryptoku.input;
 
 /**
  * Created by arnHom on 17/07/27.
@@ -6,10 +6,10 @@ package com.arnhom.cryptoku;
 
 public class TouchAction {
 
-    enum actionType{left,right,up,down,tap}
-    actionType type;
-    float x;
-    float y;
+    public enum actionType{left,right,up,down,tap}
+    public actionType type;
+    public float x;
+    public float y;
 
     public TouchAction(actionType t,float x,float y){
         this.x = x;
