@@ -15,4 +15,16 @@
     <string name="subtract">-</string>
     <string name="add">+</string>
     <string name="rightSymbol"><![CDATA[>>]]></string>
+    <string name="how_to">How To</string>
+    <string name="how_to_goal">Goal</string>
+    <string name="how_to_goal_content">In order to solve a puzzle, you must set the content of each box to 1.\nAs you slide rows and columns, the operator for that line is applied to each box in the line.\nAs the values of a box raise above 1 they will become blue.  As the values of a box decrease below 1, they will turn red.  Use this to help identify patterns of values.</string>
+    <string name="how_to_done">Got it</string>
+    <string name="how_to_rules">Rules</string>
+    <string name="how_to_rules_content">No value may exceed 10,000 or -10,000.\nAll values must remain integers at all times.</string>
+    <string name="how_to_controls_content">Swipe along rows or columns to move them in that direction.\nSwiping in the direction of an operator will apply that operation along the entirety of the line as the values move. Swiping away from an operator will apply its reverse to the line as they move.</string>
+    <string name="how_to_controls">Controls</string>
+    <string name="how_to_operators">Operators</string>
+    <string name="how_to_additionsubtraction">Addition | Subtraction:\nYour most basic of operators.  It is difficult to run into an illegal move when using these operators; be wary of using too many in a row.</string>
+    <string name="how_to_multiplicationdivision">Multiplication | Division:\nBe careful these operators can very quickly result in boxes exceeding 10,000! Additionally, while dividing, remember that only whole numbers are allowed.</string>
+    <string name="how_to_insertionbackspace">Insert | Backspace:\nThese operators add the operand to the end of the input, or remove the operand from the end of the input, but only if it is present.  These can result in very high values in only a few moves.</string>
 </resources>

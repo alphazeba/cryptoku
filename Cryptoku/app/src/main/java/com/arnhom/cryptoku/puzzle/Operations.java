@@ -7,7 +7,7 @@ import static com.arnhom.cryptoku.puzzle.Operations.Operation.none;
  */
 
 public class Operations {
-    enum Operation{add,subtract,multiply,divide,square,root , none}
+    enum Operation{add,subtract,multiply,divide,insert,backspace , none}
     Operation operation;
     int operand;
 
@@ -39,7 +39,7 @@ public class Operations {
                 break;
             case 2:
                 this.operation = randomOperation(5);
-                this.operand = randomInt(25);
+                this.operand = randomInt((this.operation != Operation.insert && this.operation != Operation.backspace) ? 25 : 9); //as long as it is not insert or backspace, increase the max value.
                 break;
             default:
                 this.operation = Operation.add;
@@ -51,8 +51,6 @@ public class Operations {
         operation = op;
         operand = num;
     }
-
-
 
     public boolean isOperationLegal(int input, boolean forward){
         double operationResult = unCheckedOperate(input,forward);
@@ -85,11 +83,25 @@ public class Operations {
                 case divide:
                     return  input / (double)operand;
 
-                case square:
-                    return input * input;
+                case insert:
+                    if(input >= 0){
+                        return input * 10 + operand;
+                    }
+                    else { //input is negative
+                        return input * 10 - operand;
+                    }
 
-                case root:
-                    return Math.sqrt(input);
+
+                case backspace:
+                    if(input == 0){//cannot backspace 0
+                        return 0.5; // this will cause the legal check to fail.
+                    }
+                    else if(input > 0){
+                        return (input-operand)/10.f;
+                    }
+                    else { //input is negative.
+                        return (input+operand)/10.f;
+                    }
                 default:
                     return 0.123123;
             }
@@ -108,17 +120,29 @@ public class Operations {
                 case divide:
                     return  input * operand;
 
-                case square:
-                    return Math.sqrt(input);
+                case insert:
+                    if(input == 0){//cannot backspace 0
+                        return 0.5; // this will cause the legal check to fail.
+                    }
+                    else if(input > 0){
+                        return (input-operand)/10.f;
+                    }
+                    else { //input is negative.
+                        return (input+operand)/10.f;
+                    }
 
-                case root:
-                    return input*input;
+                case backspace:
+                    if(input >= 0){
+                        return input * 10 + operand;
+                    }
+                    else { //input is negative
+                        return input * 10 - operand;
+                    }
                 default:
                     return 0.13123;
             }
         }
     }
-
 
     //this returns a rounded value if the output is not legal.
     //you must check whether the operation is legal using isOperationLegal prior to doing the operation.

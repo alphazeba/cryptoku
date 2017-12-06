@@ -76,7 +76,7 @@ public class CustomPuzzleMenu extends AppCompatActivity {
             text += " x ÷";
         }
         if(operators > 1){
-            text += " x² √x";
+            text += " → ↚";
         }
 
         operatorText.setText(text);

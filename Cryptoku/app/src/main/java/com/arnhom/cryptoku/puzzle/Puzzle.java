@@ -6,17 +6,17 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.Log;
 
+import com.arnhom.cryptoku.activities.cryptokuMain;
 import com.arnhom.cryptoku.input.TouchAction;
+import com.arnhom.cryptoku.puzzle.moveContainers.Move;
+import com.arnhom.cryptoku.puzzle.moveContainers.MoveList;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 /**
  * Created by arnHom on 17/07/28.
  */
 
-//TODO app draws every frame for some reason.
-//there must be an excess redraw flag being set.
 
 public class Puzzle {
 
@@ -33,32 +33,37 @@ public class Puzzle {
      */
 
 
-    int [][] board;
-    int [][] initialBoard;
+    private int [][] board;
+    private int [][] initialBoard;
 
-    LinkedList<Integer> solution;
+    private MoveList originalSolution;
+    private MoveList dynamicSolution;
 
-    Operations[]rowOperations;
-    Operations []colOperations;
+    private Operations[]rowOperations;
+    private Operations []colOperations;
 
-    float width,height;
-    boolean tweenRedraw;
+    private float width,height;
+    private boolean tweenRedraw;
 
-    boolean success;
+    private boolean success;
 
-    float x;
-    float y;
+    private float x;
+    private float y;
 
-    float drawingGapMultiplier = 0.85f;
+    private float drawingGapMultiplier = 0.85f;
 
-    TouchAction storedInput;
-    BoardAnimator boardAnimator;
+    private TouchAction storedInput;
+    private BoardAnimator boardAnimator;
 
-    public Puzzle(int scrambleDepth, int operationComplexity){
+    private cryptokuMain context;
+
+    public Puzzle(int scrambleDepth, int operationComplexity, cryptokuMain context){
         this.x = 0;
         this.y = 0;
 
         success = false;
+
+        this.context = context;
 
         Log.i("puzzle","begin building puzzle");
         boardAnimator = new BoardAnimator();
@@ -90,86 +95,42 @@ public class Puzzle {
         Log.i("puzzle","done building puzzle :)");
     }
 
-    public Puzzle(int difficulty){
-        this(6*(int)Math.pow(2,difficulty),difficulty);
+    public Puzzle(int difficulty, cryptokuMain context){
+        this(6*(int)Math.pow(2,difficulty),difficulty,context);
     }
 
     //returns how deep the puzzle actually is.
     public int scramble(int movesDeep){
         initialBoard = new int[3][3];
-        solution = new LinkedList<>();
+        originalSolution = new MoveList();
+        dynamicSolution = new MoveList();
 
         int totalTries = 0;
         int i = 0;
         int maxTries = movesDeep * 20;
-        int lastOppositeMove = -1;
         for( ; i < movesDeep; ++totalTries){
             if(totalTries == maxTries){
-                break;
+                break;//stop building the puzzle at some point.
             }
+
+            //make a random move.
+            //then make sure that it does not undo a previous move.
+
 
             //get a random move.
             //there are 12 possible moves.
-            int randomMove = (int)(Math.random() * 12);
+            Move randomMove = new Move((int)(Math.random() * 12));
 
-            //won't accept the same move as last time.
-            if(lastOppositeMove != randomMove) {
-                boolean aColumnMove;
-                boolean aForwardMove;
+            //won't accept a move that undoes a previous move.
+            if(!dynamicSolution.doesMoveUndo(randomMove)){
 
-                //break down the random number into a specific move.
-
-
-                if (randomMove >= 6) { // a column move
-                    aColumnMove = true;
-                    randomMove -= 6;
-                } else {
-                    aColumnMove = false;
-                }
-
-                if (randomMove >= 3) {
-                    aForwardMove = true;
-                    randomMove -= 3;
-                } else {
-                    aForwardMove = false;
-                }
-
-
-                boolean legal = false;
-                //random move is now 0,1, or 2
-                if (aColumnMove) {
-                    if (checkMoveLegalCol(randomMove, aForwardMove)) {
-                        moveCol(randomMove, aForwardMove);
-                        legal = true;
-                    }
-                } else {
-                    if (checkMoveLegalRow(randomMove, aForwardMove)) {
-                        moveRow(randomMove, aForwardMove);
-                        legal = true;
-                    }
-                }
-
-
-                if(legal){
+                if(checkMove(randomMove)){ //if the move is a legal move.
+                    makeMove(randomMove);
+                    originalSolution.addFirst(randomMove.reverse());
                     ++i;
-
-                    //find opposite move
-                    lastOppositeMove = 0;
-                    if(!aForwardMove){ //opposite direction
-                        lastOppositeMove += 3;
-                    }
-                    if(aColumnMove) { //same columnrow
-                        lastOppositeMove += 6;
-                    }
-                    //add back on the choice
-                    lastOppositeMove += randomMove;
-
-
-                    //add the last opposite move to the front of the solution list.
-                    solution.addFirst(lastOppositeMove);
                 }
-
             }
+
             //do not animate while scramblign.
             boardAnimator.clearAnimations();
         }
@@ -190,12 +151,22 @@ public class Puzzle {
                 board[ix][iy] = initialBoard[ix][iy];
             }
         }
+
+        resetSolution();
     }
 
-    public boolean checkMoveLegalRow(int row , boolean slideRight){
+    public boolean checkMove(Move move){
+        if(move.col){
+            return checkMoveLegalCol(move.option,move.forward);
+        } else {
+            return checkMoveLegalRow(move.option,move.forward);
+        }
+    }
+
+    private boolean checkMoveLegalRow(int row , boolean slideRight){
         //sliding right is the equivalent of doing an operation forward.
         for(int i = 0 ; i < 3 ; ++i){
-            if(!rowOperations[row].isOperationLegal(board[i][row],!slideRight)){  //if anyone is false return false.
+            if(!rowOperations[row].isOperationLegal(board[i][row],!slideRight)){  //if any one is false return false.
                 boardAnimator.shakeBoard();
                 return false;
             }
@@ -203,7 +174,7 @@ public class Puzzle {
         return true;
     }
 
-    public boolean checkMoveLegalCol(int col, boolean slideDown){
+    private boolean checkMoveLegalCol(int col, boolean slideDown){
         //sliding down is the equivalent of doing an operation forward.
         for(int i = 0; i < 3 ; ++i){
             if(!colOperations[col].isOperationLegal(board[col][i],!slideDown)){
@@ -212,6 +183,19 @@ public class Puzzle {
             }
         }
         return true;
+    }
+
+    public void makeMove(Move move){
+        if(move.col){
+            moveCol(move.option,move.forward);
+        } else {
+            moveRow(move.option,move.forward);
+        }
+
+        //the solution form of a move is the reverse move.
+        dynamicSolution.addFirst(move.reverse());
+
+        context.onMoveWasMade();
     }
 
     public void moveRow(int row, boolean slideRight){
@@ -275,13 +259,17 @@ public class Puzzle {
     // 0 is miss
     //right now manage input only returns 1 or 2.
     //this should be transferred into a boolean function
-    public int manageInput(TouchAction touch){
+    public boolean manageInput(TouchAction touch){
         //if up or down find col
+
+        Move move;
         if(touch.type == TouchAction.actionType.up || touch.type == TouchAction.actionType.down){
             int col = (int)Math.floor(touch.x/(width/4)) -1;
             if(col < 0 ||col >2){
-                return 0;
+                return false;
             }
+            move = new Move(true,col,touch.type == TouchAction.actionType.down);
+            /*
             if(touch.type == TouchAction.actionType.up){//up
                 if(checkMoveLegalCol(col,false)){
                     moveCol(col,false);
@@ -297,11 +285,14 @@ public class Puzzle {
                 }
                 return 2;
             }
+            */
         } else{//if left or right find row
             int row = (int)Math.floor(touch.y/(height/4)) - 1;
             if( row < 0 || row > 2){
-                return 0;
+                return false;
             }
+            move = new Move(false,row,touch.type == TouchAction.actionType.right);
+            /*
             if(touch.type == TouchAction.actionType.left){//left
                 if(checkMoveLegalRow(row,false)){
                     moveRow(row,false);
@@ -317,7 +308,14 @@ public class Puzzle {
                 }
                 return 2;
             }
+            */
         }
+
+        if(checkMove(move)){
+            makeMove(move);
+            return true;
+        }
+        return false;
     }
 
     public void onResize(float width, float height){
@@ -403,11 +401,11 @@ public class Puzzle {
             case divide:
                 text = "÷ " + op.operand;
                 break;
-            case square:
-                text = "x²";
+            case insert:
+                text = "→" + op.operand;
                 break;
-            case root:
-                text = "√x";
+            case backspace:
+                text = "↚" + op.operand;
                 break;
             default:
                 text = "uh oh";
@@ -419,10 +417,6 @@ public class Puzzle {
     }
 
     private void drawNumber(float x, float y, int num, Canvas canvas){
-        /*
-        TODO I would like the background of the number to change color as the number varies away from 1.
-
-         */
         Paint bgColor = new Paint();
 
         int color = Color.WHITE;
@@ -456,7 +450,6 @@ public class Puzzle {
         //canvas.drawRect(x,y,x+cellSize,y+cellSize,bgColor); //i would like to replace this with the roundedrect function eventually.
         //manualRoundRect(x,y,cellSize,cellSize,cellSize/9.708f,bgColor,canvas);
         drawRoundRectWithinBox(new RectF(this.x + width/4,this.y+height/4,this.x+width*3/4+cellSize,this.y+width*3/4+cellSize),x,y,cellSize,cellSize,cellSize/9.708f,bgColor,canvas);
-        //TODO add this manualRouchRect(stuff);
         //draw the text
         canvas.drawText(Integer.toString(num),x+cellSize/2,y+cellSize/2,txtColor);
     }
@@ -519,18 +512,9 @@ public class Puzzle {
         redraw |= boardAnimator.update(frameTime);
 
         if(storedInput != null){
-            int inputResult = manageInput(storedInput);
-            switch (inputResult){
-                case 0:
-                    //do nothing in this case.
-                    //the user missed the screen.
-                    break;
-                case 2:
-                    //TODO activate an error animation
-                case 1:
-                    redraw = true;
-                    success = checkForSuccess();
-                    break;
+            if(manageInput(storedInput)){
+                redraw = true;
+                success = checkForSuccess();
             }
             storedInput = null;
         }
@@ -539,57 +523,33 @@ public class Puzzle {
     }
 
     public String solutionToString(){
-        if(solution.size() == 0){
-            return "there is no solution, sorry";
+        if(dynamicSolution.isEmpty()){
+            return "Done!";
         }
-
-        boolean aColumnMove;
-        boolean aForwardMove;
-        int moveNum;
-
         String output = "";
 
-        for(ListIterator<Integer> it = solution.listIterator() ; it.hasNext() ; ){
-            int curNum = it.next();
-            if(curNum >= 6){
-                aColumnMove = true;
-                curNum -= 6;
-            } else {
-                aColumnMove = false;
-            }
-
-            if(curNum >=3){
-                aForwardMove = true;
-                curNum -=3;
-            } else {
-                aForwardMove = false;
-            }
-
-            moveNum = curNum;
-
-            //begin building the string
-            output += "swipe ";
-
-            if(aColumnMove){
-                if(aForwardMove){ //forward is up
+        LinkedList<Move> listedSolution = dynamicSolution.getMoves();
+        for(Move nextStep:listedSolution) {
+            output += "Swipe ";
+            if(nextStep.col){
+                if(nextStep.forward){
                     output += "down ";
-                } else{
+                }
+                else{
                     output += "up ";
                 }
-
                 output += "in column ";
-            } else { // a row
-                if(aForwardMove){ //left
-                    output += "right ";
-                }else {  //right
+            }
+            else{
+                if(nextStep.forward){
+                    output+= "right ";
+                }
+                else{
                     output += "left ";
                 }
                 output += "in row ";
             }
-
-            output += Integer.toString(moveNum + 1);
-
-            output += "\n";
+            output += Integer.toString(nextStep.option + 1) + "\n";
         }
 
         return output;
@@ -612,8 +572,20 @@ public class Puzzle {
         return true;
     }
 
-
     public boolean getSuccess(){
         return success;
+    }
+
+    private void resetSolution(){
+        dynamicSolution = new MoveList(originalSolution);//copy the original solution into the dynamic solution.
+        /*
+        if(dynamicSolution!=null){
+            dynamicSolution.clear();
+        }
+        dynamicSolution = new LinkedList<>();
+        for(Move x : originalSolution){
+            dynamicSolution.add(new Move(x));
+        }
+        */
     }
 }

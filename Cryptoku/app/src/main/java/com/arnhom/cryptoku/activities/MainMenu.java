@@ -41,4 +41,9 @@ public class MainMenu extends AppCompatActivity {
         Intent intent = new Intent(this, CustomPuzzleMenu.class);
         startActivity(intent);
     }
+
+    public void onHowTo(View view){
+        Intent intent = new Intent(this, HowTo.class);
+        startActivity(intent);
+    }
 }

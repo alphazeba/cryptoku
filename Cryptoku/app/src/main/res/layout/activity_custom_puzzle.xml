@@ -12,11 +12,11 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:id="@+id/textView"
-        android:textSize="50dp"
         android:textStyle="normal|italic"
         android:gravity="center_horizontal"
         android:textColor="@android:color/background_light"
-        android:textAllCaps="true" />
+        android:textAllCaps="true"
+        android:textSize="40dp" />
 
     <GridLayout
         android:layout_width="match_parent"
@@ -44,7 +44,6 @@
             android:id="@+id/operatorsText"
             android:textAllCaps="false"
             android:textSize="24sp"
-            android:textAlignment="textEnd"
             android:gravity="center_vertical|center_horizontal" />
 
         <LinearLayout

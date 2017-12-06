@@ -37,10 +37,10 @@ public class cryptokuMain extends AppCompatActivity{
     ResponseRandomizer responseRandomizer;
 
     TextView solutionText;
+    boolean showSolution;
 
     Intent intent;
 
-    //int x;//TODO what is this?
 
     //drawing thread items.
     Thread thread;
@@ -63,8 +63,6 @@ public class cryptokuMain extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //TODO remove this x variables
-        //x = 0;
 
         setContentView(R.layout.activity_cryptuko_main);
 
@@ -79,7 +77,7 @@ public class cryptokuMain extends AppCompatActivity{
         oldHeight = 0;
 
         hasSucceeded = false;
-
+        showSolution = false;
 
 
         //The drawing thread is started later in onResume.
@@ -110,8 +108,8 @@ public class cryptokuMain extends AppCompatActivity{
         });
     }
 
+    //passes touches on to the puzzle
     private void onTouchAction(TouchAction touch){
-        //TODO pass touch actions over to the update thingy i guess.
         puzzle.onInput(touch);
     }
 
@@ -267,7 +265,7 @@ public class cryptokuMain extends AppCompatActivity{
             if(frameTime < 0){
                 frameTime = 0;
             }
-            //TODO add in an update and crap here.
+
             update();
 
 
@@ -293,7 +291,7 @@ public class cryptokuMain extends AppCompatActivity{
     }
 
     public void onReset(View view){
-        solutionText.setText("");
+        hideSolution();
         puzzle.reset();
         puzzle.shake();
         exciteInformer.inform(responseRandomizer.getResetResponse());
@@ -301,7 +299,7 @@ public class cryptokuMain extends AppCompatActivity{
     }
 
     public void onNewPuzzle(View view){
-        solutionText.setText("");
+        hideSolution();
         killThread();
         setupPuzzle();
         puzzle.onResize(oldWidth,oldHeight);
@@ -311,7 +309,8 @@ public class cryptokuMain extends AppCompatActivity{
     }
 
     public void onGetSolution(View view){
-        solutionText.setText(puzzle.solutionToString());
+
+        revealSolution();
         puzzle.shake();
         exciteInformer.inform(responseRandomizer.getGetSolutionResponse());
     }
@@ -319,9 +318,29 @@ public class cryptokuMain extends AppCompatActivity{
     //builds a new puzzle and places it in the puzzle variable.
     private void setupPuzzle(){
         if(intent.getIntExtra("difficulty",-1) == -1){ //if this is a custom game.
-            puzzle = new Puzzle(intent.getIntExtra("depth",0),intent.getIntExtra("operators",0));
+            puzzle = new Puzzle(intent.getIntExtra("depth",0),intent.getIntExtra("operators",0),this);
         } else {
-            puzzle = new Puzzle(intent.getIntExtra("difficulty",-1));//right now just builds a level 0 puzzle;
+            puzzle = new Puzzle(intent.getIntExtra("difficulty",-1),this);//right now just builds a level 0 puzzle;
+        }
+    }
+
+    private void revealSolution(){
+        showSolution = true;
+        solutionText.setText(puzzle.solutionToString());
+    }
+
+    private void hideSolution(){
+        showSolution = false;
+        solutionText.setText("");
+    }
+
+    public void onMoveWasMade(){
+        if(showSolution){
+            runOnUiThread(new Runnable(){
+                public void run(){
+                    revealSolution();
+                }
+            });
         }
     }
 }

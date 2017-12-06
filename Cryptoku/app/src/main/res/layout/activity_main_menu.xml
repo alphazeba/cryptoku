@@ -113,7 +113,23 @@
     <Space
         android:layout_width="match_parent"
         android:layout_weight="1"
-        android:layout_height="200sp" />
+        android:layout_height="50sp" />
+
+    <Button
+        android:text="@string/how_to"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button"
+        android:layout_weight="1"
+        tools:background="@android:color/transparent"
+        android:textSize="40sp"
+        android:textAllCaps="true"
+        android:onClick="onHowTo"
+        android:background="@android:color/transparent" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="96dp" />
 
 
 </LinearLayout>
