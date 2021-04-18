@@ -3,6 +3,8 @@ package com.arnhom.cryptoku.puzzle;
 import android.util.Log;
 import android.util.MalformedJsonException;
 
+import com.arnhom.cryptoku.puzzle.moveContainers.Move;
+
 /**
  * Created by arnHom on 17/07/29.
  */
@@ -30,6 +32,15 @@ public class BoardAnimator {
         for(int i= 0 ; i< 3 ; ++i){
             rowShift[i] = 0.f;
             colShift[i] = 0.f;
+        }
+    }
+
+    public void animateMove(Move move){
+        if(move.isColMove()){
+            animateCol(move.rowOrColOption,move.forward);
+        }
+        else {
+            animateRow(move.rowOrColOption,move.forward);
         }
     }
 

@@ -18,6 +18,13 @@
         android:layout_height="wrap_content"
         android:textColor="@android:color/background_light" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView16"
+        android:layout_weight="1"
+        android:text="@string/app_version" />
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"

@@ -6,18 +6,26 @@ package com.arnhom.cryptoku.puzzle.moveContainers;
 
 public class Move{
 
-    public boolean col;
-    public int option;
+    private boolean trueIfColumnMove;
+    public int rowOrColOption;
     public boolean forward;
-    public Move(boolean col, int option, boolean forward){
-        this.col = col;
-        this.option = option;
+    public Move(boolean col, int rowOrColOption, boolean forward){
+        this.trueIfColumnMove = col;
+        this.rowOrColOption = rowOrColOption;
         this.forward = forward;
     }
 
+    public boolean isColMove(){
+        return trueIfColumnMove;
+    }
+
+    public boolean isRowMove(){
+        return !trueIfColumnMove;
+    }
+
     public Move(Move other){
-        this.col = other.col;
-        this.option = other.option;
+        this.trueIfColumnMove = other.trueIfColumnMove;
+        this.rowOrColOption = other.rowOrColOption;
         this.forward = other.forward;
     }
 
@@ -25,10 +33,10 @@ public class Move{
         randomN %= 12;//there are only 12 possible moves.
 
         if (randomN >= 6) { // a column move
-            this.col = true;
+            this.trueIfColumnMove = true;
             randomN -= 6;
         } else {
-            this.col = false;
+            this.trueIfColumnMove = false;
         }
 
         if (randomN >= 3) {
@@ -38,14 +46,14 @@ public class Move{
             this.forward = false;
         }
 
-        this.option = randomN;
+        this.rowOrColOption = randomN;
     }
 
     public boolean isEqualTo(Move other){
-        return this.col==other.col && this.option==other.option && this.forward==other.forward;
+        return this.trueIfColumnMove ==other.trueIfColumnMove && this.rowOrColOption ==other.rowOrColOption && this.forward==other.forward;
     }
 
     public Move reverse(){
-        return new Move(col,option,!forward);
+        return new Move(trueIfColumnMove, rowOrColOption,!forward);
     }
 }

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Cryptoku</string>
-
+    <string name="version">Version: </string>
+    <string name="app_version">2.-1</string>
     <string name="play_button_text">Play</string>
     <string name="play_custom_puzzle">Custom Puzzle</string>
     <string name="easy_button_text">Easy</string>

@@ -292,7 +292,7 @@ public class cryptokuMain extends AppCompatActivity{
 
     public void onReset(View view){
         hideSolution();
-        puzzle.reset();
+        puzzle.resetBoard();
         puzzle.shake();
         exciteInformer.inform(responseRandomizer.getResetResponse());
         flagForRedraw();
@@ -314,7 +314,6 @@ public class cryptokuMain extends AppCompatActivity{
         puzzle.shake();
         exciteInformer.inform(responseRandomizer.getGetSolutionResponse());
     }
-
     //builds a new puzzle and places it in the puzzle variable.
     private void setupPuzzle(){
         if(intent.getIntExtra("difficulty",-1) == -1){ //if this is a custom game.

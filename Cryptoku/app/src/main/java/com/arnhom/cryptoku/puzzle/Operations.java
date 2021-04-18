@@ -7,13 +7,18 @@ import static com.arnhom.cryptoku.puzzle.Operations.Operation.none;
  */
 
 public class Operations {
-    enum Operation{add,subtract,multiply,divide,insert,backspace , none}
+    enum Operation{add,subtract,multiply,divide,insert,backspace, none}
     Operation operation;
     int operand;
 
     public Operations(){
         operation = none;
         operand = 0;
+    }
+
+    public Operations(Operations other){
+        operand = other.operand;
+        operation = other.operation;
     }
 
     //random generation based on difficulty level
@@ -32,7 +37,6 @@ public class Operations {
                 this.operation = randomOperation(1);
                 this.operand = randomInt(10);
                 break;
-
             case 1:
                 this.operation = randomOperation(3);
                 this.operand = randomInt(10);
@@ -45,6 +49,35 @@ public class Operations {
                 this.operation = Operation.add;
                 this.operand = 0;
         }
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        switch(operation){
+            case add:
+                sb.append("+ ");
+                break;
+            case subtract:
+                sb.append("- ");
+                break;
+            case multiply:
+                sb.append("x ");
+                break;
+            case divide:
+                sb.append("÷ ");
+                break;
+            case insert:
+                sb.append("→");
+                break;
+            case backspace:
+                sb.append("↚");
+                break;
+            default:
+                sb.append("uh oh");
+                break;
+        }
+        sb.append(operand);
+        return sb.toString();
     }
 
     public void setup(Operation op, int num){
@@ -155,8 +188,17 @@ public class Operations {
         return Operation.values()[(int)(Math.floor(Math.random() * (maxOperation+1)))];
     }
 
+    private Operation randomOperation(Operation[] potentialOperations){
+        return potentialOperations[(int)(Math.floor(Math.random() * (potentialOperations.length)))];
+    }
+
     //returns a  1toMaxNum number.
     private int randomInt(int maxNum){
         return 1+(int)(Math.floor(Math.random()*(maxNum)));
+    }
+
+    private static final int[] primes = {0,1,2,3,5,7,11,13};
+    private int randomPrime(){
+        return primes[randomInt(primes.length-1)];
     }
 }

@@ -15,7 +15,7 @@ import java.util.LinkedList;
 public class MoveList{
     //contains a number of moves that are all column or all row moves.  These are contained together because they do not affect one another.
     private class MoveTier{
-        boolean col = false;
+        boolean trueIfCol = false;
         int [] moves = {0,0,0}; //postive is forward, negative is reverse
 
         MoveTier(){
@@ -23,7 +23,7 @@ public class MoveList{
 
         //deep copies a moveTier.
         MoveTier(MoveTier other){
-            this.col = other.col;
+            this.trueIfCol = other.trueIfCol;
             for(int i=0;i<3;++i){
                 this.moves[i] = other.moves[i];
             }
@@ -44,7 +44,7 @@ public class MoveList{
                         m *= -1; //m will now always be positive.
                     }
                     for(int j=0;j<m;++j){//adds m times the i move to the output list of moves.
-                        output.add(new Move(col,i,forward));
+                        output.add(new Move(trueIfCol,i,forward));
                     }
                 }
             }
@@ -59,35 +59,35 @@ public class MoveList{
         int addMove(Move m){
             //if this is an empty list, the move is added regardless of col.
             if(this.isEmpty()){
-                this.col = m.col;
-                moves[m.option] += m.forward ? 1 : -1; //adds 1 if the move is forward, removes 1 if the move is reverse.
+                this.trueIfCol = m.isColMove();
+                moves[m.rowOrColOption] += m.forward ? 1 : -1; //adds 1 if the move is forward, removes 1 if the move is reverse.
                 return this.isEmpty() ? 2 : 0;
             }
             //this is not a new movetier.
-            if(this.col != m.col){ //if the col value is mismatched, the move cannot be added to this tier.
+            if(this.trueIfCol != m.isColMove()){ //if the col value is mismatched, the move cannot be added to this tier.
                 return 1;
             }
             //col values align, we can add the move.
-            this.col = m.col;
-            moves[m.option] += m.forward ? 1 : -1; //adds 1 if the move is forward, removes 1 if the move is reverse.
+            this.trueIfCol = m.isColMove();
+            moves[m.rowOrColOption] += m.forward ? 1 : -1; //adds 1 if the move is forward, removes 1 if the move is reverse.
             return this.isEmpty() ? 2 : 0; //successfully added the move.
         }
 
         //this checks if the input move undoes a previous move.
         boolean doesMoveUndo(Move m){
-            if(this.col != m.col){ //if cols do not align then the move does not undo.
+            if(this.trueIfCol != m.isColMove()){ //if cols do not align then the move does not undo.
                 return false;
             }
 
             //if the move is forward, then it undoes negative values.
             //if the move is negative, then it undoes positive values.
             if(m.forward){
-                if(moves[m.option] < 0){
+                if(moves[m.rowOrColOption] < 0){
                     return true;
                 }
             }
             //!m.forward
-            if(moves[m.option] > 0){
+            if(moves[m.rowOrColOption] > 0){
                 return true;
             }
 
@@ -150,6 +150,38 @@ public class MoveList{
             output.addAll(mt.getMoves());
         }
         return output;
+    }
+
+    public String toString(){
+        if(isEmpty()){
+            return "Done!";
+        }
+        StringBuilder sb = new StringBuilder();
+        LinkedList<Move> listedSolution = getMoves();
+        for(Move nextStep:listedSolution) {
+            sb.append("Swipe ");
+            if(nextStep.isColMove()){
+                if(nextStep.forward){
+                    sb.append("down ");
+                }
+                else{
+                    sb.append("up ");
+                }
+                sb.append("in column ");
+            }
+            else{
+                if(nextStep.forward){
+                    sb.append("right ");
+                }
+                else{
+                    sb.append("left ");
+                }
+                sb.append("in row ");
+            }
+            sb.append((nextStep.rowOrColOption + 1) + "\n");
+        }
+
+        return sb.toString();
     }
 
     public boolean isEmpty(){
