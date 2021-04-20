@@ -47,12 +47,6 @@ import java.util.Random;
         rand = new Random();
     }
 
-
-
-    private String getRandomResponse(String s []){
-        return s[rand.nextInt(s.length)];
-    }
-
     public String getNewPuzzleResponse(){
         return getRandomResponse(newPuzzle);
     }
@@ -67,5 +61,9 @@ import java.util.Random;
 
     public String getSuccessResponse() {
         return getRandomResponse(success);
+    }
+
+    private String getRandomResponse(String s []){
+        return s[rand.nextInt(s.length)];
     }
 }

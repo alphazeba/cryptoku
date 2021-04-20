@@ -26,20 +26,25 @@ public class Point {
     }
 
     public Point add(Point other){
+        Point p = new Point(this);
+        return p.addInPlace(other);
+    }
+
+    public Point addInPlace(Point other){
         this.x += other.getX();
         this.y += other.getY();
         return this;
     }
 
-    public Point multiply(Point other){
+    public Point multiplyInPlace(Point other){
         this.x *= other.getX();
         this.y *= other.getY();
         return this;
     }
-    public Point multiply(float other){
-        this.x *= other;
-        this.y *= other;
+
+    public Point multiplyInPlace(float multiplier){
+        this.x *= multiplier;
+        this.y *= multiplier;
         return this;
     }
-
 }

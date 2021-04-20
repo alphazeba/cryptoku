@@ -1,5 +1,6 @@
 package com.arnhom.cryptoku.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -25,28 +26,19 @@ import com.arnhom.cryptoku.input.TouchInput;
 
 public class cryptokuMain extends AppCompatActivity{
 //TODO this program is horribly organized.
-
-
     //variables
-
     //main components
     SurfaceView surfaceView;
+    TextView solutionText;
     TouchInput input;
     Puzzle puzzle;
     ExciteInformer exciteInformer;
     ResponseRandomizer responseRandomizer;
-
-    TextView solutionText;
     boolean showSolution;
-
-    Intent intent;
-
-
     //drawing thread items.
-    Thread thread;
-    boolean threadRunning;
+    Thread gameThread;
+    boolean gameThreadRunning;
     boolean canvasDirty;
-
     long lastFrameStartTime;
     long thisFrameStartTime;
     long onPauseOffsetTime;
@@ -54,12 +46,11 @@ public class cryptokuMain extends AppCompatActivity{
     float frameTime;
     float oldWidth = 0;
     float oldHeight = 0;
-
     //used for input blocking.
     //only celebrate once newly entering the success state.
     boolean hasSucceeded;
 
-
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,9 +59,9 @@ public class cryptokuMain extends AppCompatActivity{
 
         surfaceView = (SurfaceView)findViewById(R.id.main_surface);
         solutionText = (TextView)findViewById(R.id.solutionTextView);
-        threadRunning = false;
-        thread = null;
-        this.setFPS(60);
+        gameThreadRunning = false;
+        gameThread = null;
+        this.setGoalFPS(60);
         onPauseOffsetTime = 0;
         canvasDirty = true;
         oldWidth = 0;
@@ -79,22 +70,14 @@ public class cryptokuMain extends AppCompatActivity{
         hasSucceeded = false;
         showSolution = false;
 
-
         //The drawing thread is started later in onResume.
-
         input = new TouchInput(720,1280);
 
         exciteInformer = new ExciteInformer(720,1280);
         responseRandomizer = new ResponseRandomizer();
 
+        puzzle = buildPuzzleFromIntent(getIntent());
 
-        //setup the puzzle.
-        //this requires fetching the intent from the activity that started this activity
-        intent = getIntent();
-
-        setupPuzzle();
-
-        //surfaceView.getHolder().addCallback(this);
         surfaceView.setOnTouchListener(new View.OnTouchListener(){
             @Override
             public boolean onTouch(View view,MotionEvent me){
@@ -124,24 +107,19 @@ public class cryptokuMain extends AppCompatActivity{
         lastFrameStartTime += onPauseOffsetTime;
         thisFrameStartTime += onPauseOffsetTime;
 
-        startThread();
+        startGameThread();
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-
-        //handle pause offset
-        //stores the time at which the phone closed.
         onPauseOffsetTime = System.currentTimeMillis();
-
-        //stop the drawing thread
-        killThread();
+        killGameThread();
     }
 
-    private void startThread(){
+    private void startGameThread(){
         //do not start the thread if the thread is already running
-        if(thread != null){
+        if(gameThread != null){
             Log.e("error","thread still alive");
             return;
         }
@@ -149,52 +127,44 @@ public class cryptokuMain extends AppCompatActivity{
         Log.i("test","start thread has run.");
 
         //start the thread.
-        threadRunning = true;
+        gameThreadRunning = true;
 
         //start the drawing thread.
-        thread = new Thread(new Runnable(){
+        gameThread = new Thread(new Runnable(){
             public void run(){
-                runnableLoop();
+                mainGameThreadLoop();
             }
         });
-        thread.start();
+        gameThread.start();
     }
 
-    private void killThread(){
-        threadRunning = false;
+    private void killGameThread(){
+        gameThreadRunning = false;
 
-        //if the thread has already been killed, we don't have to try again
-        if(thread == null){
+        if(gameThread == null)
             return;
-        }
 
-        //join the thread.
-        //this will continue to loop and wait to join until it succesfully joins without being interrupted.
         boolean joined = false;
         while(!joined){
             try{
-                thread.join();
+                gameThread.join();
                 joined = true;
             }
             catch(java.lang.InterruptedException e){
-                //handle the interrupted exception.
                 Log.e("error","join has been interrupted in killThread()");
             }
         }
 
-        //empty the thread.
-        thread = null;
+        gameThread = null;
     }
 
-    private void setFPS(int fps){
+    private void setGoalFPS(int fps){
         minimumFrameLength = (long)(1000.f/fps);
     }
 
-    void draw(SurfaceHolder holder){
-        //Log.i("debug","attempting to actualDraw somethign");
-        if(holder == null){
+    void drawAndUndirtyOnSuccess(SurfaceHolder holder){
+        if(holder == null)
             return;
-        }
         Canvas canvas = holder.lockCanvas();
         if(canvas == null){
             Log.e("debug","we have failed to actualDraw this time :'(");
@@ -203,29 +173,24 @@ public class cryptokuMain extends AppCompatActivity{
             if(oldWidth != canvas.getWidth() || oldHeight != canvas.getHeight()){
                 onResize(canvas);
             }
-
-
             actualDraw(canvas);
-
             holder.unlockCanvasAndPost(canvas);
             canvasDirty = false;
         }
     }
 
-    void update(){
+    void gameUpdate(){
         //update should use frameTime.
-        if(puzzle.update(frameTime)){
+        if(puzzle.update(frameTime))
             flagForRedraw();
-        }
 
-        if(puzzle.getSuccess() && !hasSucceeded){
+        if(puzzle.getPuzzleIsSolved() && !hasSucceeded)
             exciteInformer.inform(responseRandomizer.getSuccessResponse());
-        }
-        hasSucceeded = puzzle.getSuccess();
 
-        if(exciteInformer.update(frameTime)){
+        hasSucceeded = puzzle.getPuzzleIsSolved();
+
+        if(exciteInformer.update(frameTime))
             flagForRedraw();
-        }
     }
 
     void onResize(Canvas canvas){
@@ -245,52 +210,43 @@ public class cryptokuMain extends AppCompatActivity{
     //WARNING
     //runnableloop runs on a seperate thread from the ui thread.
     //This is the main loop of the side thread.
-    void runnableLoop(){
+    void mainGameThreadLoop(){
         //thread Running is set to false by killThread().
         Log.i("test","runnable loop has begun");
-        while(threadRunning){
-
+        while(gameThreadRunning){
             //clock stuff.
             //if the frame went by too quickly (likely) the side thread will sleep to maintain a lower maximum fps.
             long time = System.currentTimeMillis() - thisFrameStartTime;
-            if(time < minimumFrameLength){
+            if(time < minimumFrameLength)
                 SystemClock.sleep(minimumFrameLength - time);
-            }
 
             lastFrameStartTime = thisFrameStartTime;
             thisFrameStartTime = System.currentTimeMillis();
 
             frameTime = ((float) (thisFrameStartTime - lastFrameStartTime))/1000; //frametime is in seconds.
 
-            if(frameTime < 0){
+            if(frameTime < 0)
                 frameTime = 0;
-            }
 
-            update();
+            gameUpdate();
 
-
-            //drawing stuff.
-            if(canvasDirty){
-                draw(surfaceView.getHolder());
-                //do not undirty the canvas here.
-                //drawing can still fail.
-            }
+            if(canvasDirty)
+                drawAndUndirtyOnSuccess(surfaceView.getHolder());
         }
         Log.i("test","runnable loop has exited.");
     }
 
     void actualDraw(Canvas canvas){
-        //make up some paints.
-        Paint bgColor = new Paint();
-        bgColor.setColor(Color.BLACK);
-        //actualDraw some crap.
-        canvas.drawRect(new Rect(0,0,canvas.getWidth(),canvas.getHeight()),bgColor);
-
-        puzzle.draw(canvas);
+        bucketCanvas(canvas, new Paint(Color.BLACK));
+        puzzle.drawBoard(canvas);
         exciteInformer.draw(canvas);
     }
 
-    public void onReset(View view){
+    void bucketCanvas(Canvas canvas, Paint paint){
+        canvas.drawRect(new Rect(0,0,canvas.getWidth(),canvas.getHeight()),paint);
+    }
+
+    public void onResetButton(View view){
         hideSolution();
         puzzle.resetBoard();
         puzzle.shake();
@@ -298,29 +254,36 @@ public class cryptokuMain extends AppCompatActivity{
         flagForRedraw();
     }
 
-    public void onNewPuzzle(View view){
+    public void onNewPuzzleButton(View view){
         hideSolution();
-        killThread();
-        setupPuzzle();
+        killGameThread(); // TODO why do we start and kill the thread here? this is not obvious.
+        puzzle = buildPuzzleFromIntent(getIntent());
         puzzle.onResize(oldWidth,oldHeight);
         puzzle.shake();
         exciteInformer.inform(responseRandomizer.getNewPuzzleResponse());
-        startThread();
+        startGameThread();
     }
 
-    public void onGetSolution(View view){
-
+    public void onGetSolutionButton(View view){
         revealSolution();
         puzzle.shake();
         exciteInformer.inform(responseRandomizer.getGetSolutionResponse());
     }
-    //builds a new puzzle and places it in the puzzle variable.
-    private void setupPuzzle(){
-        if(intent.getIntExtra("difficulty",-1) == -1){ //if this is a custom game.
-            puzzle = new Puzzle(intent.getIntExtra("depth",0),intent.getIntExtra("operators",0),this);
-        } else {
-            puzzle = new Puzzle(intent.getIntExtra("difficulty",-1),this);//right now just builds a level 0 puzzle;
-        }
+
+    private Puzzle buildPuzzleFromIntent(Intent intent){
+        if(isCustomGame(intent))
+            return new Puzzle(
+                    intent.getIntExtra("depth", 0),
+                    intent.getIntExtra("operators", 0),
+                    this);
+        // else
+        return new Puzzle(
+                intent.getIntExtra("difficulty",-1),
+                this);//right now just builds a level 0 puzzle;
+    }
+
+    private boolean isCustomGame(Intent intent){
+        return intent.getIntExtra("difficulty",-1) == -1;
     }
 
     private void revealSolution(){

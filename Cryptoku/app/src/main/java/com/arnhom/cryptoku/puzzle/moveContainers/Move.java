@@ -29,19 +29,27 @@ public class Move{
         this.forward = other.forward;
     }
 
-    public Move(int randomN){
-        randomN %= 12;//there are only 12 possible moves.
+    public int getNumAllPotentialMoves(int boardSize){
+        return boardSize * 4;
+    }
 
-        if (randomN >= 6) { // a column move
+    public int getNumColumnPotentialMoves(int boardSize){
+        return boardSize * 2;
+    }
+
+    public Move(int boardSize){
+        int randomN = (int)(Math.random() * getNumAllPotentialMoves(boardSize));
+
+        if (randomN >= getNumColumnPotentialMoves(boardSize)) { // a column move
             this.trueIfColumnMove = true;
-            randomN -= 6;
+            randomN -= getNumColumnPotentialMoves(boardSize);
         } else {
             this.trueIfColumnMove = false;
         }
 
-        if (randomN >= 3) {
+        if (randomN >= boardSize) {
             this.forward = true;
-            randomN -= 3;
+            randomN -= boardSize;
         } else {
             this.forward = false;
         }

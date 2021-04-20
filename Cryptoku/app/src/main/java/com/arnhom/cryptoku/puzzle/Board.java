@@ -48,22 +48,19 @@ public class Board {
         solution = new MoveList();
     }
 
-    public void scramble(int movesDeep){
-        Board initialBoard = new Board(this);
-        int totalTries = 0;
-        int i = 0;
-        int maxTries = movesDeep * 20;
-        for (; i < movesDeep; ++ totalTries){
-            if (totalTries == maxTries){
-                break;
-            }
+    public void scramble(int maxMovesDepth){
+        int currentMoveDepth = 0;
+        int maxTries = maxMovesDepth * 20;
+        for (int totalTries = 0;
+             currentMoveDepth < maxMovesDepth && totalTries < maxTries;
+             ++totalTries ){
             // get a random move.
-            Move randomMove = new Move((int)(Math.random() * 12));
+            Move randomMove = new Move(size);
             if( !solution.doesMoveUndo(randomMove)){
                 if( checkMove(randomMove) ){
                     makeMove(randomMove);
                     solution.addFirst(randomMove.reverse());
-                    ++i;
+                    ++currentMoveDepth;
                 }
             }
         }
